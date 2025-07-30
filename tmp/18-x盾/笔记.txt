@@ -1,0 +1,81 @@
+day18 x盾
+
+1.前置必备
+    1.1 混淆处理
+
+    1.2 识别
+
+    1.3 赋值调试
+        - 场景：
+            var sign = window.xxx;         想象：其他地方之前 window.xxx = 123123;
+            var sign = window['xxx'];      想象：其他地方之前 window['xxx'] = 123123;
+
+        - 目前方案：搜索关键字
+            window.xxx    xxx   ['xxx']   window['xxx']       window[0x1231]
+
+        - 新方案Hook机制
+            - 原本
+                window.xxx         window['xxx']
+                window.xxx=？      window['xxx']=？
+
+            - Hook替换
+                    (function(){
+                        var info;
+                        Object.defineProperty(window, 'xxx', {
+                           set: function(val) {
+                                debugger;   //断点
+                                info = val;
+                           },
+                           get: function(){
+                               return info;
+                           }
+                        });
+                    })()
+
+                    window.name = "wupeiqi";
+                    window.name
+
+            - 注意事项
+                - 自执行函数作用域保护变量
+                - Hook脚本一定要早于 读取、赋值(charles工具替换)
+
+        - 案例：x盾
+            window.gdxidpyhxde  找谁给他赋值？
+            - Hook脚本
+            - 替换
+            - https://dun.163.com/trial/jigsaw   ->  jigsaw2.html
+
+2.【逆向】获取配置参数
+
+3.【逆向】背景图
+
+4.【逆向】提交滑块
+
+    4.1 分析请求
+        GET
+        https://c.dun.163.com/api/v3/check
+        参数：
+            - data
+            - cb，默认get请求算法
+
+    4.2 定位
+        data = JSON.stringify({
+            'd': j( D['join'](':') ),
+            'm': '',
+            'p': w1,
+            'f': j(N(w0, w2[kq(0x5f8)](','))),
+            'ext': j(N(w0, this[kq(0xee)] + ',' + this['traceData']['length']))
+        }
+
+    4.3 逆向分析：d
+        - this['traceData']是个数组，存放的是滑动过程中的“轨迹”加密
+            - var w4 = this[kV(0x2d0)]['state']['token']
+            - w5 = [Math[kV(0x17a)](w0[kV(0x466)] < 0x0 ? 0x0 : w0[kV(0x466)]), Math[kV(0x17a)](w0['clientY'] - w0['startY']), T[kV(0x436)]() - w0[kV(0x3da)]];
+            - var w6 = N(w4, w5 + '');
+            - this['traceData'].push(w6)
+        - D == T['sample'](this['traceData'],    V) 获取this['traceData']的前50个数据
+        - D['join'](':')
+        - j函数
+
+
+5.识别率20% -> 100%
